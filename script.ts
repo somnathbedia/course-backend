@@ -1,24 +1,34 @@
 import { PrismaClient } from '@prisma/client'
+import express from 'express'
+import jwt from 'jsonwebtoken'
+import cors from 'cors'
+import bodyParser from 'body-parser'
+const userRoutes =  require('./controllers/user-controller')
 
-const prisma = new PrismaClient()
+const app = express();
+
+export const prisma = new PrismaClient()
 
 async function main() {
-    const admins = await prisma.admin.findMany({
-        where: {
-            isAdmin:true
-        }
-    
+    app.use(bodyParser.json())
+    app.use(cors());
+
+    app.use('/user',userRoutes)
+    app.get('/', (req, res) => {
+        res.json({ msg: "Hello from prisma" });
     })
 
-    console.log(admins);
+    app.listen(8080, () => {
+        console.log("Backend server is running at port 8080")
+    })
 }
 
 main()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })

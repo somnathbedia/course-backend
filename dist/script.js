@@ -8,25 +8,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.prisma = void 0;
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const body_parser_1 = __importDefault(require("body-parser"));
+const userRoutes = require('./controllers/user-controller');
+const app = (0, express_1.default)();
+exports.prisma = new client_1.PrismaClient();
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const admins = yield prisma.admin.findMany({
-            where: {
-                isAdmin: true
-            }
+        app.use(body_parser_1.default.json());
+        app.use((0, cors_1.default)());
+        app.use('/user', userRoutes);
+        app.get('/', (req, res) => {
+            res.json({ msg: "Hello from prisma" });
         });
-        console.log(admins);
+        app.listen(8080, () => {
+            console.log("Backend server is running at port 8080");
+        });
     });
 }
 main()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma.$disconnect();
+    yield exports.prisma.$disconnect();
 }))
     .catch((e) => __awaiter(void 0, void 0, void 0, function* () {
     console.error(e);
-    yield prisma.$disconnect();
+    yield exports.prisma.$disconnect();
     process.exit(1);
 }));
