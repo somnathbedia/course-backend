@@ -3,7 +3,10 @@ import express from 'express'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
 import bodyParser from 'body-parser'
-const userRoutes =  require('./controllers/user-controller')
+import dotenv from 'dotenv';
+dotenv.config();
+const userRoutes = require('./controllers/user-controller')
+const PORT = process.env.PORT ?? 8000
 
 const app = express();
 
