@@ -1,10 +1,9 @@
-import express from 'express'
 import { Router } from 'express'
 import { prisma } from '../script';
 import bcrypt, { hash } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { authenticate } from '../authmiddleware/authenticate';
-// import { SECRET_KEY } from "../secret"
+
 
 
 const router = Router();

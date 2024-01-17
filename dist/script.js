@@ -21,6 +21,7 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const userRoutes = require('./controllers/user-controller');
+const adminRoutes = require('./controllers/admin-controller');
 const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 8000;
 const app = (0, express_1.default)();
 exports.prisma = new client_1.PrismaClient();
@@ -29,6 +30,7 @@ function main() {
         app.use(body_parser_1.default.json());
         app.use((0, cors_1.default)());
         app.use('/user', userRoutes);
+        app.use('/admin', adminRoutes);
         app.get('/', (req, res) => {
             res.json({ msg: "Hello from prisma" });
         });

@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 import dotenv from 'dotenv';
 dotenv.config();
 const userRoutes = require('./controllers/user-controller')
+const adminRoutes = require('./controllers/admin-controller')
 const PORT = process.env.PORT ?? 8000
 
 const app = express();
@@ -16,7 +17,8 @@ async function main() {
     app.use(bodyParser.json())
     app.use(cors());
 
-    app.use('/user',userRoutes)
+  app.use('/user', userRoutes)
+  app.use('/admin',adminRoutes)
     app.get('/', (req, res) => {
         res.json({ msg: "Hello from prisma" });
     })
