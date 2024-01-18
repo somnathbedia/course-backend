@@ -3,26 +3,40 @@ import { prisma } from '../script';
 import bcrypt, { hash } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { authenticate } from '../authmiddleware/authenticate';
+import {z} from "zod"
 
-
+const userInput = z.object({
+    username: z.string().min(4).max(15),
+    fullname: z.string().max(25),
+    email: z.string().min(15).max(50),
+    password: z.string().min(8).max(30)
+})
 
 const router = Router();
 
 
 router.post("/signup", async (req, res) => {
-    let { username, fullname, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    password = hashedPassword;
-    const user = await prisma.user.create({
-        data: { username, fullname, email, password }
-    })
-    const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY ?? '', { expiresIn: "2h" });
-    if (user) {
-        res.status(201).json({ msg: "user signup", token })
+
+    try {
+        let { username, fullname, email, password } = userInput.parse(req.body);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        password = hashedPassword;
+        const user = await prisma.user.create({
+            data: { username, fullname, email, password }
+        })
+        const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY ?? '', { expiresIn: "2h" });
+        if (user) {
+            res.status(201).json({ msg: "user signup", token })
+            return;
+        } else {
+            res.status(404).json({ msg: "Signup failed" });
+        }
+    } catch (e: any) {
+        const msg = e.message;
+        res.json({ msg });
         return;
-    } else {
-        res.status(404).json({ msg: "Signup failed" });
     }
+   
 })
 
 router.post("/login", authenticate, async (req, res) => {
