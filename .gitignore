@@ -4,3 +4,5 @@ testScript.ts
 dist
 secret.ts
 .gitignore
+graphql-server-example@1.0.0
+npm
