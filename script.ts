@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
@@ -7,10 +7,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 const userRoutes = require('./controllers/user-controller')
 const adminRoutes = require('./controllers/admin-controller')
+const testRoutes = require('./controllers/data-controller')
 const PORT = process.env.PORT ?? 8000
+import axios from "axios"
 
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
+import { log } from 'console'
 
 
 const typeDefs = `#graphql
@@ -30,7 +33,7 @@ const typeDefs = `#graphql
     fullname:String
     email:String
     password:String
-    course:Course
+    purchasedCourse:[Course]
   }
 
   type Course{
@@ -45,19 +48,38 @@ const typeDefs = `#graphql
   type Query {
     getAllAdmin: [Admin]
     getAllCourses: [Course]
+    getAllUsers: [User]
+    getUser(id:ID!): User
   }
 `;
 
 const resolvers = {
   Query: {
-    getAllAdmin: async() => {
+    getAllAdmin: async () => {
       const admins = await prisma.admin.findMany()
       return admins
     },
     getAllCourses: async () => {
       const courses = await prisma.course.findMany();
       return courses
+    },
+    getAllUsers: async () => {
+      const users = await prisma.user.findMany();
+      return users;
+    },
+
+    getUser: async (parent:any,args:any): Promise<User | null> => {
+      // const response = await axios.get(`https://jsonplaceholder.typicode.com/users/${args.id}`)
+      // const data = response.data;
+      // return data;
+      const user = await prisma.user.findUnique({
+        where: {
+          id: args.id
+        }
+      })
+      return user;
     }
+
   },
 };
 
@@ -66,27 +88,30 @@ const app = express();
 export const prisma = new PrismaClient()
 
 async function main() {
-   
 
-    const server = new ApolloServer({
-      typeDefs,
-      resolvers,
-    });
-    app.use(bodyParser.json())
-    app.use(cors());
-    await server.start();
 
-  
-  app.use('/graphql',expressMiddleware(server))
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
+  app.use(bodyParser.json())
+  app.use(cors());
+  await server.start();
+
+
+  app.use('/graphql', expressMiddleware(server))
+  app.use('/test', testRoutes);
+
+
   app.use('/user', userRoutes)
-  app.use('/admin',adminRoutes)
-    app.get('/', (req, res) => {
-        res.json({ msg: "Hello from prisma" });
-    })
+  app.use('/admin', adminRoutes)
+  app.get('/', (req, res) => {
+    res.json({ msg: "Hello from prisma" });
+  })
 
-    app.listen(8080, () => {
-        console.log("Backend server is running at port 8080")
-    })
+  app.listen(8080, () => {
+    console.log("Backend server is running at port 8080")
+  })
 }
 
 main()

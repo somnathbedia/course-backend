@@ -22,6 +22,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const userRoutes = require('./controllers/user-controller');
 const adminRoutes = require('./controllers/admin-controller');
+const testRoutes = require('./controllers/data-controller');
 const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 8000;
 const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
@@ -34,7 +35,6 @@ const typeDefs = `#graphql
     username: String
     email: String
     password: String
-    course: String
   }
 
   type User{
@@ -43,7 +43,7 @@ const typeDefs = `#graphql
     fullname:String
     email:String
     password:String
-    course:Course
+    purchasedCourse:[Course]
   }
 
   type Course{
@@ -58,6 +58,8 @@ const typeDefs = `#graphql
   type Query {
     getAllAdmin: [Admin]
     getAllCourses: [Course]
+    getAllUsers: [User]
+    getUser(id:ID!): User
   }
 `;
 const resolvers = {
@@ -69,6 +71,21 @@ const resolvers = {
         getAllCourses: () => __awaiter(void 0, void 0, void 0, function* () {
             const courses = yield exports.prisma.course.findMany();
             return courses;
+        }),
+        getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
+            const users = yield exports.prisma.user.findMany();
+            return users;
+        }),
+        getUser: (parent, args) => __awaiter(void 0, void 0, void 0, function* () {
+            // const response = await axios.get(`https://jsonplaceholder.typicode.com/users/${args.id}`)
+            // const data = response.data;
+            // return data;
+            const user = yield exports.prisma.user.findUnique({
+                where: {
+                    id: args.id
+                }
+            });
+            return user;
         })
     },
 };
@@ -84,6 +101,7 @@ function main() {
         app.use((0, cors_1.default)());
         yield server.start();
         app.use('/graphql', (0, express4_1.expressMiddleware)(server));
+        app.use('/test', testRoutes);
         app.use('/user', userRoutes);
         app.use('/admin', adminRoutes);
         app.get('/', (req, res) => {
